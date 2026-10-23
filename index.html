@@ -14,6 +14,21 @@
     <meta name="apple-mobile-web-app-title" content="NeonRunner" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <script>
+      // Suppress Vite HMR websocket disconnection notice in Cloud proxy environments
+      window.addEventListener('error', function(e) {
+        if (e && (e.message?.includes('WebSocket') || e.filename?.includes('@vite/client'))) {
+          e.stopImmediatePropagation();
+          e.preventDefault();
+        }
+      }, true);
+      window.addEventListener('unhandledrejection', function(e) {
+        if (e && (String(e.reason)?.includes('WebSocket') || String(e.reason)?.includes('@vite/client'))) {
+          e.stopImmediatePropagation();
+          e.preventDefault();
+        }
+      }, true);
+    </script>
   </head>
   <body>
     <div id="root"></div>
