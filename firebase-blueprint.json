@@ -1,0 +1,166 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Registered player account profile with economy and score progression",
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string",
+          "description": "Player unique username",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "role": {
+          "type": "string",
+          "description": "User role: player or admin",
+          "enum": ["player", "admin"]
+        },
+        "email": {
+          "type": "string",
+          "description": "Optional email address",
+          "maxLength": 128
+        },
+        "walletBalance": {
+          "type": "number",
+          "description": "Current coins wallet balance"
+        },
+        "bestLevel": {
+          "type": "number",
+          "description": "Highest level reached by player"
+        },
+        "highScore": {
+          "type": "number",
+          "description": "Highest run score recorded"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp of account registration"
+        },
+        "lastActiveAt": {
+          "type": "string",
+          "description": "ISO timestamp of player last active session"
+        },
+        "lastActiveDate": {
+          "type": "string",
+          "description": "Date string YYYY-MM-DD for Daily Active Player tracking"
+        }
+      },
+      "required": ["username", "role", "walletBalance", "bestLevel", "highScore"]
+    },
+    "GameConfig": {
+      "title": "GameConfig",
+      "description": "Global Game Master tuning, economy controls, and broadcast announcement",
+      "type": "object",
+      "properties": {
+        "baseRunnerSpeed": {
+          "type": "number",
+          "description": "Base running speed in MPH (default 18)"
+        },
+        "obstacleInterval": {
+          "type": "number",
+          "description": "Base obstacle spawn interval in milliseconds (default 2200)"
+        },
+        "welcomeBonus": {
+          "type": "number",
+          "description": "Coins awarded to new player accounts"
+        },
+        "coinMultiplier": {
+          "type": "number",
+          "description": "Global multiplier for in-game coin pickups"
+        },
+        "spinPrizes": {
+          "type": "string",
+          "description": "JSON stringified array of Lucky Spin prizes",
+          "maxLength": 4096
+        },
+        "announcement": {
+          "type": "string",
+          "description": "JSON stringified global announcement banner object",
+          "maxLength": 4096
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last admin configuration change"
+        },
+        "updatedBy": {
+          "type": "string",
+          "description": "Username or UID of admin who changed config",
+          "maxLength": 128
+        }
+      },
+      "required": ["baseRunnerSpeed", "obstacleInterval", "welcomeBonus", "coinMultiplier"]
+    },
+    "Score": {
+      "title": "Score",
+      "description": "Player leaderboard score entry",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "User UID who achieved score",
+          "maxLength": 128
+        },
+        "username": {
+          "type": "string",
+          "description": "Display name of player",
+          "maxLength": 64
+        },
+        "score": {
+          "type": "number",
+          "description": "Score achieved"
+        },
+        "level": {
+          "type": "number",
+          "description": "Level reached"
+        },
+        "timestamp": {
+          "type": "number",
+          "description": "Unix timestamp of score"
+        }
+      },
+      "required": ["username", "score"]
+    },
+    "Room": {
+      "title": "Room",
+      "description": "Multiplayer live racing room",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Room display name",
+          "maxLength": 64
+        },
+        "host": {
+          "type": "string",
+          "description": "Host player name",
+          "maxLength": 64
+        },
+        "status": {
+          "type": "string",
+          "description": "Room status: waiting, in_game, finished",
+          "enum": ["waiting", "in_game", "finished"]
+        }
+      },
+      "required": ["name", "host", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Registered player profiles"
+    },
+    "/gameConfig/{configId}": {
+      "schema": "GameConfig",
+      "description": "Game Master tuning and announcement banner configuration"
+    },
+    "/scores/{scoreId}": {
+      "schema": "Score",
+      "description": "Global leaderboard scores"
+    },
+    "/rooms/{roomId}": {
+      "schema": "Room",
+      "description": "Multiplayer rooms"
+    }
+  }
+}

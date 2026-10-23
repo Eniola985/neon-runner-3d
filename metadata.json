@@ -1,0 +1,6 @@
+{
+  "name": "Neon Runner 3D",
+  "description": "High-octane 3D cyberpunk endless runner with real-time procedural Afrobeats and worldwide music.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
