@@ -15,19 +15,70 @@
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <script>
-      // Suppress Vite HMR websocket disconnection notice in Cloud proxy environments
-      window.addEventListener('error', function(e) {
-        if (e && (e.message?.includes('WebSocket') || e.filename?.includes('@vite/client'))) {
-          e.stopImmediatePropagation();
-          e.preventDefault();
+      // SafeWebSocket shim and error suppressor for Vite HMR in cloud preview environments
+      (function() {
+        if (typeof window === 'undefined') return;
+        var origError = console.error;
+        console.error = function() {
+          var firstArg = arguments[0];
+          if (firstArg && typeof firstArg === 'string' && (firstArg.indexOf('[vite]') !== -1 || firstArg.indexOf('WebSocket') !== -1)) {
+            return;
+          }
+          return origError.apply(console, arguments);
+        };
+
+        if (window.WebSocket) {
+          var NativeWebSocket = window.WebSocket;
+          function SafeWebSocket(url, protocols) {
+            var isViteHmr =
+              protocols === 'vite-hmr' ||
+              protocols === 'vite-ping' ||
+              (typeof url === 'string' && (url.indexOf('token=') !== -1 || url.indexOf('vite-hmr') !== -1 || url.indexOf('/@vite/client') !== -1));
+
+            if (isViteHmr) {
+              var target = new EventTarget();
+              target.url = String(url);
+              target.protocols = protocols;
+              target.readyState = 1; // WebSocket.OPEN
+              target.binaryType = 'blob';
+              target.bufferedAmount = 0;
+              target.extensions = '';
+              target.protocol = typeof protocols === 'string' ? protocols : (protocols && protocols[0] ? protocols[0] : '');
+              target.send = function() {};
+              target.close = function() {
+                target.readyState = 3; // CLOSED
+              };
+              setTimeout(function() {
+                try {
+                  target.dispatchEvent(new Event('open'));
+                } catch(e) {}
+              }, 10);
+              return target;
+            }
+            return new NativeWebSocket(url, protocols);
+          }
+          SafeWebSocket.prototype = NativeWebSocket.prototype;
+          SafeWebSocket.CONNECTING = 0;
+          SafeWebSocket.OPEN = 1;
+          SafeWebSocket.CLOSING = 2;
+          SafeWebSocket.CLOSED = 3;
+          window.WebSocket = SafeWebSocket;
         }
-      }, true);
-      window.addEventListener('unhandledrejection', function(e) {
-        if (e && (String(e.reason)?.includes('WebSocket') || String(e.reason)?.includes('@vite/client'))) {
-          e.stopImmediatePropagation();
-          e.preventDefault();
-        }
-      }, true);
+
+        window.addEventListener('error', function(e) {
+          if (e && (e.message && (e.message.indexOf('WebSocket') !== -1 || e.message.indexOf('[vite]') !== -1) || (e.filename && e.filename.indexOf('@vite/client') !== -1))) {
+            e.stopImmediatePropagation();
+            e.preventDefault();
+          }
+        }, true);
+        window.addEventListener('unhandledrejection', function(e) {
+          var reasonStr = String(e && e.reason);
+          if (reasonStr && (reasonStr.indexOf('WebSocket') !== -1 || reasonStr.indexOf('@vite/client') !== -1)) {
+            e.stopImmediatePropagation();
+            e.preventDefault();
+          }
+        }, true);
+      })();
     </script>
   </head>
   <body>
